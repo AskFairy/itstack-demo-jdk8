@@ -38,7 +38,7 @@ public void test_00() {
 }
 ```
 
-## 一、在接口中提供默认的方法实现（有点像抽象类）
+## 一、在接口中提供默认的方法实现
 
 在jdk1.8里面，不仅可以定义接口，还可以在接口中提供默认的实现。这一个小小的改变却让整个抽象设计都随着改变了！
 
@@ -87,6 +87,12 @@ public void test_02() {
 }
 ```
 
+### 为什么要有这个特性？
+
+之前的接口是个双刃剑，好处是面向抽象而不是面向具体编程，缺陷是，当需要修改接口或者添加接口时候，需要修改全部实现该接口的类。以引进的默认方法。他们的目的是为了解决接口的修改与现有的实现不兼容的问题。
+
+资料：[java8中的default关键字](https://blog.csdn.net/qq_35835624/article/details/80196932)
+
 ## 二、Lambda 表达式
 
 因为有接口中可以增加默认的方法实现，那么Java肯定是因为要简化开发才出现的这么个设计。所以你会从各个我们以前的List、Set等等所有接口中看到默认的方法实现。
@@ -113,7 +119,7 @@ Collections.sort(names, (String a, String b) -> {
     return b.compareTo(a);
 });
 ```
- 
+
 上面的这段同样功能的代码块，简短干净了许多。就像婆媳一样可能刚开始看不习惯，但是接触接触就喜欢了。因为，它还可以更加简短优秀；
 
 ```java
@@ -159,6 +165,10 @@ names.sort(Comparator.reverseOrder());
 所谓函数式接口(Functional Interface)就是只包含一个抽象方法的声明。针对该接口类型的所有 Lambda 表达式都会与这个抽象方法匹配。{另外，只是在接口上添加default并不算抽象方法}
 
 总结：为了保证一个接口明确的被定义为一个函数式接口(Functional Interface)，我们需要为该接口添加注解：@FunctionalInterface。这样，一旦你添加了第二个抽象方法，编译器会立刻抛出错误提示。｛不填写，但是只写一个default也可以｝
+
+### 为什么要有函数式接口？
+
+只有增加了注释@FunctionalInterface的接口，也就是函数式接口(Functional Interface)，Jvm是如何进行类型推断，并且找到对应的方法，你才能缩写成 Lambda 表示式。
 
 >定义含有注解@FunctionalInterface的接口
 
@@ -1033,6 +1043,7 @@ public void test41() {
 - 在一些新的框架中SpringBoot里如果翻看源码可以看到很多的新特性使用
 - 案例来源；https://github.com/winterbe/java8-tutorial ｛英文｝
 - 源码贡献；https://github.com/fuzhengwei/itstack-demo-jdk8
+- Collectors收集器：https://www.jianshu.com/p/6ee7e4cd5314
 
 ------------
 

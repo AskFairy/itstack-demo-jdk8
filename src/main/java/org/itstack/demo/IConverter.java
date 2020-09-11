@@ -5,4 +5,8 @@ public interface IConverter<F, T> {
 
     T convert(F from);
 
+    default int test(){
+        return 1;
+    }
+
 }

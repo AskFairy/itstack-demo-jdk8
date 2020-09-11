@@ -4,14 +4,16 @@ import com.alibaba.fastjson.JSON;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ApiTest {
@@ -63,6 +65,7 @@ public class ApiTest {
         IFormula formula = a -> a * a;
         System.out.println(formula.calculate(2));
         System.out.println(formula.sqrt(2));
+        System.out.println(formula.get());
     }
 
     @Test
@@ -76,12 +79,14 @@ public class ApiTest {
             }
         });
 
-        Collections.sort(names, (String a, String b) -> {
+        Collections.sort(names,(String a,String b) ->{
             return b.compareTo(a);
         });
 
+        //java.util.List 集合现在已经添加了 sort 方法。而且 Java 编译器能够根据类型推断机制判断出参数类型
         names.sort((a, b) -> b.compareTo(a));
 
+        //不是只可有default默认实现，还可以有静态方法)
         names.sort(Comparator.reverseOrder());
 
         System.out.println(JSON.toJSONString(names));
@@ -109,6 +114,9 @@ public class ApiTest {
         IConverter<Integer, String> converter04 = String::valueOf;
         String converted04 = converter04.convert(11);
         System.out.println(converted04);
+
+//        IConverter<Integer,String> converter04 = String::valueOf;
+
 
     }
 
@@ -140,10 +148,14 @@ public class ApiTest {
 
     @Test
     public void test08() {
-/*        int num = 1;
-        IConverter<Integer, String> stringConverter =
-                (from) -> String.valueOf(from + num);
-        num = 3;*/
+       int num = 1;
+       IConverter<Integer, String> stringConverter =
+            (from) -> String.valueOf(from + num);
+//       num = 3;
+
+       String str = "1";
+       IConverter<String,Integer> Converter =
+                (from) -> Integer.valueOf(from + str);
     }
 
     @Test
@@ -260,28 +272,39 @@ public class ApiTest {
                 .stream()
                 .filter((s) -> s.startsWith("a"))
                 .forEach(System.out::println);
+        stringCollection.stream().filter(s -> s.startsWith("a")).forEach(System.out::println);
     }
 
     @Test
     public void test18() {
-        stringCollection
-                .stream()
-                .sorted()
-                .filter((s) -> s.startsWith("a"))
-                .forEach(System.out::println);
+//        stringCollection
+//                .stream()
+//                .sorted()
+//                .filter((s) -> s.startsWith("a"))
+//                .forEach(System.out::println);
+//        stringCollection.stream().sorted().filter(s -> s.startsWith("a")).forEach(System.out::println);
+        List<String> result = stringCollection.stream().sorted().filter(s -> s.startsWith("a")).collect(Collectors.toList());
+        //只是
+        System.out.println(stringCollection);
+        System.out.println(result);
     }
 
     @Test
     public void test19() {
-        stringCollection
-                .stream()
-                .map(String::toUpperCase)
-                .sorted(Comparator.reverseOrder())  //等同于(a, b) -> b.compareTo(a)
-                .forEach(System.out::println);
+//        stringCollection
+//                .stream()
+//                .map(String::toUpperCase)
+//                .sorted(Comparator.reverseOrder())  //等同于(a, b) -> b.compareTo(a)
+//                .forEach(System.out::println);
+        stringCollection.stream().map(String::toUpperCase).sorted(Comparator.reverseOrder()).forEach(System.out::println);
     }
 
     @Test
     public void test20() {
+
+        boolean test = stringCollection.stream().noneMatch(s -> s.startsWith("B"));
+        System.out.println(test);
+
         // anyMatch：验证 list 中 string 是否有以 a 开头的, 匹配到第一个，即返回 true
         boolean anyStartsWithA =
                 stringCollection
@@ -317,6 +340,9 @@ public class ApiTest {
                         .count();
 
         System.out.println(startsWithB);    // 3
+
+        long count = stringCollection.stream().filter(s -> s.startsWith("a")).count();
+        System.out.println(count);
     }
 
     /**
@@ -332,6 +358,18 @@ public class ApiTest {
 
         reduced.ifPresent(System.out::println);
         // aaa1#aaa2#bbb1#bbb2#bbb3#ccc#ddd1#ddd2
+
+        Optional<String> result = stringCollection.stream().filter(s -> s.startsWith("z"))
+                .sorted(Comparator.naturalOrder()).map(s -> s.toUpperCase()).reduce((s1, s2) -> s1 + "#" + s2);
+        System.out.println(result);
+    }
+
+    @Test
+    public void stringTest(){
+        String s1 = "hello";
+        String s2 = new String(s1);
+        System.out.println(s1 == s2);
+
     }
 
     @Test
@@ -370,7 +408,9 @@ public class ApiTest {
         long t0 = System.nanoTime();
 
         long count = values.parallelStream().sorted().count();
+        ConcurrentMap<String, Object> map = values.parallelStream().sorted().limit(10).collect(Collectors.toConcurrentMap(String::toString, String::toString));
         System.out.println(count);
+        System.out.println(map.toString());
 
         long t1 = System.nanoTime();
 
@@ -387,10 +427,11 @@ public class ApiTest {
             // 与老版不同的是，putIfAbent() 方法在 put 之前，  不用在写if null continue了
             // 会判断 key 是否已经存在，存在则直接返回 value, 否则 put, 再返回 value
             map.putIfAbsent(i, "val" + i);
-        }
 
+        }
+        map.putIfAbsent(4,"666");
         // forEach 可以很方便地对 map 进行遍历操作
-        map.forEach((key, value) -> System.out.println(value));
+        map.forEach((key, value) -> System.out.println(key+"，"+value));
 
     }
 
@@ -411,8 +452,10 @@ public class ApiTest {
         });
 
         Stream<BeanB> beanBStream01 = map.values().stream().map(beanA -> new BeanB(beanA.getName(), beanA.getAge()));
+        List<BeanB> bList = map.values().stream().map(beanA -> new BeanB(beanA.getName(), beanA.getAge())).collect(Collectors.toList());
 
-        beanBStream01.forEach(System.out::println);
+//        beanBStream01.forEach(System.out::println);
+        bList.forEach(System.out::println);
     }
 
     @Test
@@ -442,6 +485,8 @@ public class ApiTest {
         // 先判断 key 为 3 的元素是否存在，存在，则不做任何处理
         map.computeIfAbsent(3, num -> "bam");
         map.get(3);             // val33
+
+        map.computeIfAbsent(3,key -> key + "value");
     }
 
     @Test
@@ -477,6 +522,7 @@ public class ApiTest {
 
         // 若 key 42 不存在，则返回 not found
         map.getOrDefault(42, "not found");  // not found
+
     }
 
 
@@ -633,14 +679,25 @@ public class ApiTest {
         class Person {
         }
 
-        Hint hint = Person.class.getAnnotation(Hint.class);
-        System.out.println(hint);                   // null
+//        Hint hint = Person.class.getAnnotation(Hint.class);
+//        System.out.println(hint);                   // null
 
         Hints hints1 = Person.class.getAnnotation(Hints.class);
         System.out.println(hints1.value().length);  // 2
 
         Hint[] hints2 = Person.class.getAnnotationsByType(Hint.class);
         System.out.println(hints2.length);          // 2
+
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(1);
+        ExecutorService cacheThreadPool = Executors.newCachedThreadPool();
+        ExecutorService singleThreadExecutor=Executors.newSingleThreadExecutor();
+
+        ExecutorService scheduledThreadPool=Executors.newScheduledThreadPool(1);
+
+        ExecutorService newWorkStealingPool = Executors.newWorkStealingPool();
+        Thread.currentThread().interrupt();
+        Person person = new Person();
+        person.notifyAll();
     }
 
 }

@@ -9,4 +9,9 @@ public interface IFormula {
         return Math.sqrt(a);
     }
 
+    // 获取
+    default int get(){
+        return 1;
+    }
+
 }
